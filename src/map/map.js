@@ -1,18 +1,14 @@
 import React, {Component} from 'react';
 import GoogleMapReact from 'google-map-react';
 import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormLabel from '@material-ui/core/FormLabel';
 import { withStyles } from '@material-ui/core/styles';
 import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import SaveIcon from '@material-ui/icons/Save';
 import DeleteIcon from '@material-ui/icons/Delete';
-import Typography from '@material-ui/core/Typography';
 import Modal from '@material-ui/core/Modal';
 import PropTypes from 'prop-types';
 import Switch from '@material-ui/core/Switch';
-
 
 let geoFence = []; //json object
 let vertices = [];
@@ -39,6 +35,11 @@ let deleted = [];
       left: `${left}%`,
       transform: `translate(-${top}%, -${left}%)`,
     };
+  }
+
+  const boxStyle = {
+    'background-color' : 'rgba(255,255,255,.5)',
+    'width' : 325
   }
   
    const styles = theme => ({
@@ -97,7 +98,6 @@ class GeoFence extends Component {
       map: null,
       maps: null,
       drawingManager: null,
-      showDrawingManager: true,
       name: null,
       view : "map",
       overlay: {
@@ -115,7 +115,6 @@ class GeoFence extends Component {
        alertenter: false,
        alertleave: false,
        newname: null,
-       editable: true,
 
    }  
   }
@@ -160,9 +159,9 @@ class GeoFence extends Component {
       }
     if(this.state.overlay.info != null){
     temp.push(template)
-    this.setState({savemap: temp, name: ''});
+    this.setState({savemap: temp});
     }
-    alert('Fence saved!')
+    alert('Fence Saved!');
     callback();
   }
 
@@ -206,24 +205,18 @@ class GeoFence extends Component {
   }
 }
 viewMap = (index) => {
-  this.state.drawingManager.setMap(null)
-  
-    this.setState({editable: false,currentfence: this.state.savemap[index].name,view: "list",showDrawingManager: false})
-    console.log('this is drawing: ',this.state.drawingManager)
+
+    this.setState({currentfence: this.state.savemap[index].name})
+    this.setState({view: "list"})
   if(fence){
     clearOverlays()
   }
-
- 
+   
   let map = this.state.map
-  
   fence = this.state.savefence[index].slice()
-  fence[0].editable = false
-
-
   fence[0].setMap(map);
 
-  console.log(index)
+  console.log(this.state.drawingManager)
 }
 
 increase = () => {
@@ -245,8 +238,9 @@ deleteSwitch = () => {
 
 viewFenceSettings = (index) => {
     if(this.state.view != 'settings'){
-        this.setState({currentfence: this.state.savemap[index].name,currentfenceindex : index,view: 'settings'})
-
+        this.setState({currentfence: this.state.savemap[index].name})
+        this.setState({currentfenceindex : index})
+         this.setState({view: 'settings'})
     }
 
     else
@@ -315,93 +309,8 @@ handleGoogleMapApi = (map, maps) => {
         fillColor: '#FF0000',
         fillOpacity: 0.2,
         strokeWeight: 2,
-        clickable: false,
-        editable: that.state.editable,
-        zIndex: 1,
-        draggable: false,
-        geodesic: true
-      },
-      polygonOptions: {
-        fillColor: '#FF0000',
-        fillOpacity: 0.2,
-        strokeWeight: 2,
         clickable: true,
         editable: true,
-        zIndex: 1,
-        draggable: false,
-        geodesic: true
-      },
-    });
-
-    drawingManager.setMap(map);
-    
-    console.log('this is showdrawing', that.state.showDrawingManager)
-    if(!that.state.showDrawingManager){
-      drawingManager.setMap(null)
-    }
-    that.setState({ drawingManager })
-    
-    maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
-        
-      let overlay = that.state.overlay;
-      
-      that.setState({overlay})
-      console.log("saved")
-
-      drawingManager.setOptions({drawingMode: null});
-      drawingManager.setOptions({map: null});
-      
-      fence.push(event.overlay);
-      let savefence = fence.slice()
-
-      that.setState({currentfence: savefence})
-      
-      console.log(fence) 
-      if (event.type === 'circle') {
-        overlay.type = event.type;
-        var radius = event.overlay.getRadius();
-        var center = event.overlay.getCenter().toString();
-
-        overlay.info = {
-          radius: radius,
-          coord: {center}
-        }
-      }
-      else{
-        overlay.type = event.type;
-        var poly = event.overlay.getPath()
-
-        for (var i =0; i < poly.getLength(); i++) {
-          var xy = poly.getAt(i);
-
-          var vertex = {lat:xy.lat(),lng:xy.lng()}
-          vertices.push(vertex)
-        }
-        overlay.info = {
-            Info: {vertices}
-        }
-      }
-    console.log(this.state)
-    });
-
-  }
-
-  handleGoogleMapApiList = (map, maps) => {
-    let that = this;
-    that.setState({map,maps});
-    let drawingManager = new maps.drawing.DrawingManager({
-      drawingMode: maps.drawing.OverlayType.CIRCLE,
-      drawingControl: this.state.drawing,
-      drawingControlOptions: {
-        position: maps.ControlPosition.TOP_CENTER,
-        drawingModes: ['circle', 'polygon']
-      },
-      circleOptions: {
-        fillColor: '#FF0000',
-        fillOpacity: 0.2,
-        strokeWeight: 2,
-        clickable: false,
-        editable: false,
         zIndex: 1,
         draggable: false,
         geodesic: true
@@ -464,8 +373,6 @@ handleGoogleMapApi = (map, maps) => {
     });
 
   }
-
-
 
   handleChange = (event) => {
     console.log(event.target.name,':',event.target.value);
@@ -473,7 +380,7 @@ handleGoogleMapApi = (map, maps) => {
   };
 
   handleOpen = () => {
-    this.setState({ open: true,showDrawingManager: false });
+    this.setState({ open: true });
   };
 
   handleClose = () => {
@@ -506,8 +413,6 @@ else
 
   render() {
 
-    console.log(this.state.drawingManager)
-
     const { classes } = this.props;
 
     const bootstrapURLKeys={
@@ -522,10 +427,11 @@ else
           defaultZoom={this.props.zoom}       
           bootstrapURLKeys={ bootstrapURLKeys }
           yesIWantToUseGoogleMapApiInternals
-          onGoogleApiLoaded={({map,maps})=>this.handleGoogleMapApi(map,maps) }
+          onGoogleApiLoaded={({map,maps})=>this.handleGoogleMapApiList(map,maps) }
         >
+        <div style = {boxStyle}>
          <FormControl className={classes.formControl}>
-        
+       
         <h2>Viewing: {this.state.currentfence} </h2> 
        
         </FormControl> 
@@ -533,12 +439,13 @@ else
         <Button size = "large" color = "primary" variant = "contained" className={classes.button} onClick = {this.changeView}>
          Fence List
         </Button>
+        </div>
         </GoogleMapReact>
         </div>
     )
     else if(this.state.view == "map")
     return (
-      <div style={{ height: '100vh', width: '100%',backgroundColor:'rgba(255,255,255,0.8' }}>
+      <div style={{ height: '100vh', width: '100%', }}>
         <GoogleMapReact
           defaultCenter={this.props.center}
           defaultZoom={this.props.zoom}       
@@ -546,7 +453,8 @@ else
           yesIWantToUseGoogleMapApiInternals
           onGoogleApiLoaded={({map,maps})=>this.handleGoogleMapApi(map,maps) }
         >
-        <FormControl className={classes.formControl} style={{backgroundColor:'rgba(255,255,255,0.6' }}>
+        <div style = {boxStyle} >
+        <FormControl className={classes.formControl}>
         
         <h2> Use the Tools to Draw a GeoFence </h2>
        
@@ -557,8 +465,7 @@ else
 				          className={classes.textField}
 				          defaultvalue={this.state.name}
 				          margin="normal"
-                  onChange = {this.handleChange}
-                  value={this.state.name}
+				          onChange = {this.handleChange}
 				        />  
         </FormControl>
                 < br />    
@@ -575,6 +482,7 @@ else
         <Button  size = "small" variant = "contained" className={classes.button} onClick = {() => this.props.onClickHandle('main')}>
          Go Back
         </Button>
+        </div>
         <Modal
           aria-labelledby="simple-modal-title"
           aria-describedby="simple-modal-description"
@@ -597,7 +505,7 @@ else
 
     else
     return(
-        <div>
+        <div style = {{'margin-left' : 20}}>
             <h1>Settings for Fence:  {this.state.currentfence} </h1> <br />
             <FormControl className={classes.formControl}>
             <h2> Rename fence </h2>
